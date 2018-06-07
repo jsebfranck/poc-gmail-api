@@ -19,6 +19,11 @@ npm install
 node server.js
 ```
 
+FIREBASE POC
+```
+npm i -g firebase-tools
+```
+
 NEXT
 
 https://www.youtube.com/watch?v=LOeioOKUKI8
