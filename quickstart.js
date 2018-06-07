@@ -10,7 +10,7 @@ const TOKEN_PATH = 'credentials.json';
 fs.readFile('client_secret.json', (err, content) => {
   if (err) return console.log('Error loading client secret file:', err);
   // Authorize a client with credentials, then call the Google Sheets API.
-  authorize(JSON.parse(content), listLabels);
+  authorize(JSON.parse(content), listThreads);
 });
 
 /**
@@ -63,25 +63,35 @@ function getNewToken(oAuth2Client, callback) {
   });
 }
 
-/**
- * Lists the labels in the user's account.
- *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
-function listLabels(auth) {
+
+function listThreads(auth) {
   const gmail = google.gmail({version: 'v1', auth});
-  gmail.users.labels.list({
+  gmail.users.threads.list({
     userId: 'me',
+ //    labelIds: ['CATEGORY_PROMOTIONS']
   }, (err, {data}) => {
     if (err) return console.log('The API returned an error: ' + err);
-    const labels = data.labels;
-    if (labels.length) {
-      console.log('Labels:');
-      labels.forEach((label) => {
-        console.log(`- ${label.name}`);
-      });
-    } else {
-      console.log('No labels found.');
-    }
+
+    data.threads.forEach((thread) => {
+      displayThread(auth, thread.id);
+    });
+  });
+}
+
+function displayThread(auth, id) {
+  const gmail = google.gmail({version: 'v1', auth});
+  gmail.users.threads.get({
+    userId: 'me',
+    id,
+  }, (err, {data}) => {
+    if (err) return console.log('The API returned an error: ' + err);
+
+    data.messages[0].payload.headers.forEach((header) => {
+      if (header.name === 'Subject') {
+        console.log('-->', header.value);
+      } else if (header.name === 'Sender') {
+        console.log('FROM', header.value);
+      }
+    });
   });
 }
